@@ -1,0 +1,146 @@
+@baseUrl = http://localhost:3000/api
+
+### Register a user once, then sign in below
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Usuario de prueba",
+  "email": "usuario@example.com",
+  "contrasena": "cambiar-esta-clave"
+}
+
+###
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@example.com",
+  "contrasena": "cambiar-esta-clave"
+}
+
+### Vehicles
+GET {{baseUrl}}/vehiculos
+Authorization: Bearer {{login.response.body.token}}
+
+###
+GET {{baseUrl}}/vehiculos/1
+Authorization: Bearer {{login.response.body.token}}
+
+###
+POST {{baseUrl}}/vehiculos
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "marca": "Mercedes-Benz",
+  "modelo": "Atego",
+  "patente": "AB123CD",
+  "anio": 2022,
+  "capacidad_carga": 2500
+}
+
+###
+PUT {{baseUrl}}/vehiculos/1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "marca": "Mercedes-Benz",
+  "modelo": "Atego",
+  "patente": "AB123CD",
+  "anio": 2022,
+  "capacidad_carga": 2500
+}
+
+###
+# Use only with a record that is safe to remove.
+DELETE {{baseUrl}}/vehiculos/1
+Authorization: Bearer {{login.response.body.token}}
+
+### Drivers
+GET {{baseUrl}}/conductores
+Authorization: Bearer {{login.response.body.token}}
+
+###
+GET {{baseUrl}}/conductores/1
+Authorization: Bearer {{login.response.body.token}}
+
+###
+POST {{baseUrl}}/conductores
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "apellido": "Pérez",
+  "numero_documento": "30123456",
+  "numero_licencia": "LIC123456",
+  "fecha_alta_licencia": "2022-01-01",
+  "fecha_vencimiento_licencia": "2030-01-01"
+}
+
+###
+PUT {{baseUrl}}/conductores/1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "apellido": "Pérez",
+  "numero_documento": "30123456",
+  "numero_licencia": "LIC123456",
+  "fecha_alta_licencia": "2022-01-01",
+  "fecha_vencimiento_licencia": "2030-01-01"
+}
+
+###
+# Use only with a record that is safe to remove.
+DELETE {{baseUrl}}/conductores/1
+Authorization: Bearer {{login.response.body.token}}
+
+### Trips
+GET {{baseUrl}}/viajes
+Authorization: Bearer {{login.response.body.token}}
+
+###
+GET {{baseUrl}}/viajes/1
+Authorization: Bearer {{login.response.body.token}}
+
+###
+POST {{baseUrl}}/viajes
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "vehiculo_id": 1,
+  "conductor_id": 1,
+  "fecha_salida": "2026-01-01 08:00:00",
+  "fecha_llegada": "2026-01-01 12:00:00",
+  "origen": "La Rioja",
+  "destino": "Córdoba",
+  "kilometros": 450,
+  "observaciones": "Ejemplo"
+}
+
+###
+PUT {{baseUrl}}/viajes/1
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "vehiculo_id": 1,
+  "conductor_id": 1,
+  "fecha_salida": "2026-01-01 08:00:00",
+  "fecha_llegada": "2026-01-01 12:00:00",
+  "origen": "La Rioja",
+  "destino": "Córdoba",
+  "kilometros": 450,
+  "observaciones": "Ejemplo"
+}
+
+###
+# Use only with a record that is safe to remove.
+DELETE {{baseUrl}}/viajes/1
+Authorization: Bearer {{login.response.body.token}}
