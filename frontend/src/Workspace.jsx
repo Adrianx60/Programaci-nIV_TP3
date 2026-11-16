@@ -7,12 +7,28 @@ const pageItems = [
   { id: 'viajes', label: 'Viajes', icon: 'route' },
 ]
 
+const ARGENTINA_TIME_ZONE = 'America/Argentina/Buenos_Aires'
 const numberFormat = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 })
-const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium' })
-const dateTimeFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium', timeStyle: 'short' })
+const dateFormat = new Intl.DateTimeFormat('es-AR', {
+  dateStyle: 'medium',
+  timeZone: ARGENTINA_TIME_ZONE,
+})
+const dateTimeFormat = new Intl.DateTimeFormat('es-AR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: ARGENTINA_TIME_ZONE,
+  hour12: false,
+})
 const CURRENT_TIMESTAMP = Date.now()
 const CURRENT_DATE = new Date(CURRENT_TIMESTAMP)
-const CURRENT_YEAR = CURRENT_DATE.getFullYear()
+const CURRENT_YEAR = Number(
+  new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+    timeZone: ARGENTINA_TIME_ZONE,
+  }).format(CURRENT_DATE),
+)
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/
 
 function Icon({ name, size = 18 }) {
   const paths = {
@@ -55,9 +71,26 @@ function formatNumber(value) {
 
 function formatDate(value, includeTime = false) {
   if (!value) return '—'
-  const date = new Date(String(value).replace(' ', 'T'))
+  const date = parseArgentinaDate(value)
   if (Number.isNaN(date.getTime())) return String(value)
   return (includeTime ? dateTimeFormat : dateFormat).format(date)
+}
+
+function parseArgentinaDate(value) {
+  if (value instanceof Date) return value
+
+  const text = String(value).trim()
+  if (DATE_ONLY_PATTERN.test(text)) {
+    return new Date(`${text}T12:00:00-03:00`)
+  }
+
+  const normalized = text.replace(' ', 'T')
+  if (DATE_TIME_PATTERN.test(text)) {
+    const withSeconds = normalized.length === 16 ? `${normalized}:00` : normalized
+    return new Date(`${withSeconds}-03:00`)
+  }
+
+  return new Date(text)
 }
 
 function vehicleName(vehicle) {
@@ -79,8 +112,8 @@ function kmById(trips, idKey) {
 }
 
 function tripDateOrder(first, second) {
-  return new Date(String(second.fecha_salida || '').replace(' ', 'T'))
-    - new Date(String(first.fecha_salida || '').replace(' ', 'T'))
+  return parseArgentinaDate(second.fecha_salida || '')
+    - parseArgentinaDate(first.fecha_salida || '')
 }
 
 function StatCard({ label, value, detail, icon, accent }) {
@@ -186,7 +219,7 @@ function Overview({ data, onPageChange }) {
         eyebrow="PANEL DE CONTROL"
         title="Resumen de operación"
         description="Una mirada rápida al estado de tu flota."
-        action={<span className="date-chip"><Icon name="calendar" size={16} /> {formatDate(CURRENT_DATE)}</span>}
+        action={<span className="date-chip"><Icon name="calendar" size={16} /> {formatDate(CURRENT_DATE, true)}</span>}
       />
 
       <section className="stats-grid" aria-label="Indicadores de operación">
@@ -279,8 +312,10 @@ function DriverTable({ drivers, kilometers, tripCounts, onEdit, onDelete }) {
         <thead><tr><th>CONDUCTOR</th><th>DOCUMENTO</th><th>LICENCIA</th><th>VENCIMIENTO</th><th>VIAJES</th><th className="cell-number">KILÓMETROS</th><th><span className="sr-only">Acciones</span></th></tr></thead>
         <tbody>
           {drivers.map((driver) => {
-            const expired = driver.fecha_vencimiento_licencia
-              && Date.parse(`${String(driver.fecha_vencimiento_licencia).slice(0, 10)}T23:59:59`) < CURRENT_TIMESTAMP
+            const expirationDate = driver.fecha_vencimiento_licencia
+              ? parseArgentinaDate(`${String(driver.fecha_vencimiento_licencia).slice(0, 10)} 23:59:59`)
+              : null
+            const expired = expirationDate && expirationDate.getTime() < CURRENT_TIMESTAMP
             return (
               <tr key={driver.id}>
                 <td><div className="entity-cell"><span className="avatar">{driver.nombre?.slice(0, 1)}{driver.apellido?.slice(0, 1)}</span><span><strong>{driverName(driver)}</strong><small>Conductor #{String(driver.id).padStart(3, '0')}</small></span></div></td>
